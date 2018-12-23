@@ -1,0 +1,33 @@
+{
+  "Settings": {
+    "Twitch": {
+      "OAuth": "",
+      "Username": "",
+      "Channel": ""
+    },
+    "Discord": {
+      "DiscordToken": "",
+      "ChannelId": 0
+    },
+    "Atlas": {
+      "FolderPath": "c:\\AtlasServer\\",
+      "Executable": "AtlasServer.exe",
+      "StartupParameters": "AtlasSandbox?Multihome=X.X.X.X?GameServerPort=27015?GameServerQueryPort=27016?ServerName=YOURSERVERNAME?MaxPlayers=50?listen?AdminPassword=YOURADMINPASSWORD -nosteamclient -game -server"
+    },
+    "Update": {
+      "ShouldInstallSteamCmdIfMissing": true,
+      "ShouldInstallAtlasServerIfMissing": true,
+      "SteamCmdPath": "c:\\steamcmd\\",
+      "AnnounceDiscord": false,
+      "AnnounceTwitch": false,
+      "AnnounceMinutesBefore": 5,
+      "UpdateCheckInterval": 5,
+      "InstalledBuild": 0,
+      "UpdateOnLaunch": true
+    },
+    "General": {
+      "ShouldRestartAtlasOnNotRunning": true,
+      "RestartServerAfterHours": 0
+    }
+  }
+}
