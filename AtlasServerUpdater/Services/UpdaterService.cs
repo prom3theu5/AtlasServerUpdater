@@ -22,24 +22,29 @@ namespace AtlasServerUpdater.Services
         private readonly ILogger<UpdaterService> _logger;
         private readonly Settings _settings;
         private readonly ITwitchMessageService _twitchMessageService;
+        private readonly IDiscordMessageService _discordMessageService;
         private readonly ISteamCmdService _steamCmdService;
         private readonly System.Timers.Timer _updateTimer;
         private System.Timers.Timer _checkGameRunningTimer;
         private readonly Twitch _twitchMessages;
+        private readonly Models.Messages.Discord _discordMessages;
         #endregion
 
         public UpdaterService(
             ILogger<UpdaterService> logger,
             IOptionsSnapshot<Settings> settings,
             ITwitchMessageService twitchMessageService,
+            IDiscordMessageService discordMessageService,
             ISteamCmdService steamCmdService,
             IOptionsSnapshot<Messages> messageTemplates)
         {
             _logger = logger;
             _settings = settings.Value;
             _twitchMessageService = twitchMessageService;
+            _discordMessageService = discordMessageService;
             _steamCmdService = steamCmdService;
             _twitchMessages = messageTemplates.Value.Twitch;
+            _discordMessages = messageTemplates.Value.Discord;
             _logger.LogInformation("Updater Service has Started");
 
             if (_settings.Update.ShouldInstallSteamCmdIfMissing)
@@ -142,9 +147,16 @@ namespace AtlasServerUpdater.Services
             {
                 if (_settings.Update.AnnounceTwitch)
                 {
-                    string messageToSend = _twitchMessages.TwitchUpdateMessage.Replace("@version", $"{updateCheck.Version}").Replace(AnnounceBefore, $"{_settings.Update.AnnounceMinutesBefore}{MinutesPluralisation()}");
+                    string twitchMessage = _twitchMessages.TwitchUpdateMessage.Replace("@version", $"{updateCheck.Version}").Replace(AnnounceBefore, $"{_settings.Update.AnnounceMinutesBefore}{MinutesPluralisation()}");
 
-                    _twitchMessageService.SendMessage(messageToSend);
+                    _twitchMessageService.SendMessage(twitchMessage);
+                }
+
+                if (_settings.Update.AnnounceTwitch)
+                {
+                    string discordMessage = _discordMessages.DiscordUpdateMessage.Replace("@version", $"{updateCheck.Version}").Replace(AnnounceBefore, $"{_settings.Update.AnnounceMinutesBefore}{MinutesPluralisation()}");
+
+                    await _discordMessageService.SendMessage(discordMessage);
                 }
 
                 _logger.LogInformation("Updating...");
@@ -158,7 +170,19 @@ namespace AtlasServerUpdater.Services
 
                 _steamCmdService.InstallAndUpdateAtlasServer();
 
-                _steamCmdService.StartAtlasServer();
+                bool result = _steamCmdService.StartAtlasServer();
+                if (result)
+                {
+                    if (_settings.Update.AnnounceTwitch)
+                    {
+                        _twitchMessageService.SendMessage(_twitchMessages.TwitchServerRestartingMessage);
+                    }
+
+                    if (_settings.Update.AnnounceTwitch)
+                    {
+                        await _discordMessageService.SendMessage(_discordMessages.DiscordServerRestartingMessage);
+                    }
+                }
 
                 _logger.LogInformation("Server Has Started Back Up.");
             }

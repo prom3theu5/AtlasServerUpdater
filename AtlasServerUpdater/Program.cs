@@ -45,6 +45,7 @@ namespace AtlasServerUpdater
                     services.Configure<Messages>(hostContext.Configuration.GetSection("Messages"));
 
                     services.AddSingleton<ITwitchMessageService, TwitchMessageService>();
+                    services.AddSingleton<IDiscordMessageService, DiscordMessageService>();
                     services.AddSingleton<ISteamCmdService, SteamCmdService>();
                     services.AddSingleton<IHostedService, UpdaterService>();
                 })
