@@ -9,16 +9,21 @@
       "DiscordToken": "",
       "ChannelId": 0
     },
+    "RCON": {
+      "Servers": [ "127.0.0.1,27015,password" ]
+    },
     "Atlas": {
       "FolderPath": "c:\\AtlasServer\\",
       "Executable": "AtlasServer.exe",
-      "StartupParameters": "AtlasSandbox?Multihome=X.X.X.X?GameServerPort=27015?GameServerQueryPort=27016?ServerName=YOURSERVERNAME?MaxPlayers=50?listen?AdminPassword=YOURADMINPASSWORD -nosteamclient -game -server"
+      "BatchFiles": [],
+      "ServerProcessName": "ShooterGameServer"
     },
     "Update": {
       "ShouldInstallSteamCmdIfMissing": true,
       "ShouldInstallAtlasServerIfMissing": true,
       "SteamCmdPath": "c:\\steamcmd\\",
       "AnnounceDiscord": false,
+      "AnnounceRCon": false,
       "AnnounceTwitch": false,
       "AnnounceMinutesBefore": 5,
       "UpdateCheckInterval": 5,

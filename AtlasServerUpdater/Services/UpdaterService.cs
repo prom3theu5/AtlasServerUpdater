@@ -5,6 +5,7 @@ using AtlasServerUpdater.Models.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -21,13 +22,16 @@ namespace AtlasServerUpdater.Services
         #region Private Properties
         private readonly ILogger<UpdaterService> _logger;
         private readonly Settings _settings;
+        private readonly IAutoRestartServerService _autorestartService;
         private readonly ITwitchMessageService _twitchMessageService;
         private readonly IDiscordMessageService _discordMessageService;
+        private readonly IRconMessageService _rconMessageService;
         private readonly ISteamCmdService _steamCmdService;
         private readonly System.Timers.Timer _updateTimer;
         private System.Timers.Timer _checkGameRunningTimer;
         private readonly Twitch _twitchMessages;
         private readonly Models.Messages.Discord _discordMessages;
+        private readonly Models.Messages.Rcon _rconMessages;
         #endregion
 
         public UpdaterService(
@@ -36,15 +40,20 @@ namespace AtlasServerUpdater.Services
             ITwitchMessageService twitchMessageService,
             IDiscordMessageService discordMessageService,
             ISteamCmdService steamCmdService,
-            IOptionsSnapshot<Messages> messageTemplates)
+            IOptionsSnapshot<Messages> messageTemplates,
+            IAutoRestartServerService autorestartService,
+            IRconMessageService rconMessageService)
         {
             _logger = logger;
             _settings = settings.Value;
+            _autorestartService = autorestartService;
             _twitchMessageService = twitchMessageService;
             _discordMessageService = discordMessageService;
+            _rconMessageService = rconMessageService;
             _steamCmdService = steamCmdService;
             _twitchMessages = messageTemplates.Value.Twitch;
             _discordMessages = messageTemplates.Value.Discord;
+            _rconMessages = messageTemplates.Value.RCON;
             _logger.LogInformation("Updater Service has Started");
 
             if (_settings.Update.ShouldInstallSteamCmdIfMissing)
@@ -63,6 +72,11 @@ namespace AtlasServerUpdater.Services
             {
                 SetupServerProcessMonitor();
             }
+
+            if (_settings.General.RestartServerAfterHours != 0)
+            {
+                _autorestartService.StartTimer();
+            }
         }
 
         private void SetupServerProcessMonitor()
@@ -80,7 +94,7 @@ namespace AtlasServerUpdater.Services
         private void _checkGameRunningTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             _logger.LogInformation("Options configured to monitor server running state. Checking if server process is running");
-            Process process = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.Executable));
+            Process process = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.ServerProcessName));
 
             if (process is null)
             {
@@ -158,6 +172,15 @@ namespace AtlasServerUpdater.Services
 
                     await _discordMessageService.SendMessage(discordMessage);
                 }
+
+                if (_settings.Update.AnnounceRCon)
+                {
+                    string rconMessage = _rconMessages.RconUpdateMessage.Replace("@version", $"{updateCheck.Version}").Replace(AnnounceBefore, $"{_settings.Update.AnnounceMinutesBefore}{MinutesPluralisation()}");
+
+                    await _rconMessageService.SendMessage(rconMessage);
+                }
+
+                await Task.Delay(TimeSpan.FromMinutes(_settings.Update.AnnounceMinutesBefore));
 
                 _logger.LogInformation("Updating...");
                 bool updateResult = await _steamCmdService.KillAtlas();

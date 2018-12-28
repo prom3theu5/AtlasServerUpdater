@@ -7,5 +7,6 @@
         public Atlas Atlas { get; set; }
         public Update Update { get; set; }
         public General General { get; set; }
+        public RCON RCON { get; set; }
     }
 }

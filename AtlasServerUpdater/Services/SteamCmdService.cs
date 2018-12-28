@@ -4,6 +4,7 @@ using AtlasServerUpdater.Models.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -63,7 +64,7 @@ namespace AtlasServerUpdater.Services
                             RedirectStandardOutput = false,
                             UseShellExecute = false
                         };
-                        Process.Start(processStartInfo).WaitForExit();
+                        Process.Start(processStartInfo)?.WaitForExit();
                     });
                     _logger.LogInformation("SteamCMD installed successfully");
                     File.Delete(Path.Combine(_settings.Update.SteamCmdPath, SteamCmdZipFilename));
@@ -174,16 +175,19 @@ namespace AtlasServerUpdater.Services
         {
             try
             {
-                ProcessStartInfo processStartInfo = new ProcessStartInfo
+                foreach (string batchFile in _settings.Atlas.BatchFiles)
                 {
-                    FileName = $"{_settings.Atlas.FolderPath}{_settings.Atlas.Executable}",
-                    Arguments = $"{_settings.Atlas.StartupParameters} -log",
-                    RedirectStandardOutput = false,
-                    UseShellExecute = false
-                };
-                Process.Start(processStartInfo);
+                    ProcessStartInfo processStartInfo = new ProcessStartInfo
+                    {
+                        FileName = $"{batchFile}",
+                        RedirectStandardOutput = false,
+                        UseShellExecute = false
+                    };
+                    Process.Start(processStartInfo);
+                }
 
-                Process processRunning = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.Executable));
+
+                Process processRunning = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.ServerProcessName));
                 return processRunning != null;
             }
             catch (Exception e)
@@ -197,15 +201,15 @@ namespace AtlasServerUpdater.Services
         {
             try
             {
-                Process process = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.Executable));
-                if (process != null)
+                List<Process> processes = Process.GetProcesses().Where(c => c.ProcessName.Contains(_settings.Atlas.ServerProcessName)).ToList();
+                if (processes.Any())
                 {
-                    //todo: We Need RCON here once we have support to announce in the server.
-                    await Task.Delay(60 * 1000);
-                    process = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.Executable));
-                    process?.Kill();
-                    // Wait 60 seconds for a clean shutdown
-                    await Task.Delay(60 * 1000);
+                    foreach (Process process in processes)
+                    {
+                        process?.Kill();
+                    }
+                    // Wait 30 seconds for a clean shutdown
+                    await Task.Delay(30 * 1000);
                 }
                 return true;
             }

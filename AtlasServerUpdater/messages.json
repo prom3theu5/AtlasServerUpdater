@@ -2,16 +2,21 @@
   "Messages": {
     "Discord": {
       "DiscordUpdateMessage": "@Everyone New Atlas Server Version Detected, Build: @version. The server will restart in @announcebefore.",
-      "DiscordServerUptimeMessage": "The Atlas server has been running for @uptime. Restarts are scheduled every @restartinterval. The server will restart in @countdownminutes.",
+      "DiscordServerUptimeMessage": "Periodic restarts of @hours hours are scheduled on this server. This server will restart in 5 minutes.",
       "DiscordServerRestartingMessage": "@Everyone The Atlas server will restart in @countdownminutes. It will show online in a few minutes.",
       "DiscordServerNotRunning": "@Everyone The Atlas server was not detected as running. It will start now, and be online within 2-3 Minutes"
     },
     "Twitch": {
       "TwitchUpdateMessage": "New Atlas Server Version Detected, Build: @version. The server will restart in @announcebefore.",
-      "TwitchServerUptimeMessage": "The Atlas server has been running for @uptime. Restarts are scheduled every @restartinterval. The server will restart in @countdownminutes.",
+      "TwitchServerUptimeMessage": "Periodic restarts of @hours hours are scheduled on this server. This server will restart in 5 minutes.",
       "TwitchServerRestartingMessage": "The Atlas Server is now restarting. It will show online in a few minutes",
       "TwitchServerNotRunning": "The Atlas server was not detected as running. It will start now, and be online within 2-3 Minutes"
     },
-    "AnnounceIntervalInMinutes": 0
+    "RCON": {
+      "RconUpdateMessage": "New Atlas Server Version Detected, Build: @version. The server will restart in @announcebefore.",
+      "RConServerUptimeMessage": "Periodic restarts of @hours hours are scheduled on this server. This server will restart in 5 minutes.",
+      "RConServerRestartingMessage": "The Atlas Server is now restarting. It will show online in a few minutes",
+      "RConServerNotRunning": "The Atlas server was not detected as running. It will start now, and be online within 2-3 Minutes"
+    }
   }
 }

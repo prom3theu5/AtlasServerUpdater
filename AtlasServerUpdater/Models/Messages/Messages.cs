@@ -4,6 +4,6 @@
     {
         public Discord Discord { get; set; }
         public Twitch Twitch { get; set; }
-        public int AnnounceIntervalInMinutes { get; set; }
+        public Rcon RCON { get; set; }
     }
 }

@@ -47,6 +47,8 @@ namespace AtlasServerUpdater
                     services.AddSingleton<ITwitchMessageService, TwitchMessageService>();
                     services.AddSingleton<IDiscordMessageService, DiscordMessageService>();
                     services.AddSingleton<ISteamCmdService, SteamCmdService>();
+                    services.AddSingleton<IAutoRestartServerService, AutoRestartServerService>();
+                    services.AddSingleton<IRconMessageService, RconMessageService>();
                     services.AddSingleton<IHostedService, UpdaterService>();
                 })
                 .UseSerilog();
