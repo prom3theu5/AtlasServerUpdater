@@ -15,25 +15,80 @@ using Twitch = AtlasServerUpdater.Models.Messages.Twitch;
 
 namespace AtlasServerUpdater.Services
 {
+    /// <summary>
+    /// Class UpdaterService.
+    /// Implements the <see cref="Microsoft.Extensions.Hosting.IHostedService" />
+    /// </summary>
+    /// <seealso cref="Microsoft.Extensions.Hosting.IHostedService" />
     public class UpdaterService : IHostedService
     {
+        /// <summary>
+        /// The announce before
+        /// </summary>
         private const string AnnounceBefore = "@announcebefore";
 
         #region Private Properties
+        /// <summary>
+        /// The logger
+        /// </summary>
         private readonly ILogger<UpdaterService> _logger;
+        /// <summary>
+        /// The settings
+        /// </summary>
         private readonly Settings _settings;
+        /// <summary>
+        /// The autorestart service
+        /// </summary>
         private readonly IAutoRestartServerService _autorestartService;
+        /// <summary>
+        /// The twitch message service
+        /// </summary>
         private readonly ITwitchMessageService _twitchMessageService;
+        /// <summary>
+        /// The discord message service
+        /// </summary>
         private readonly IDiscordMessageService _discordMessageService;
+        /// <summary>
+        /// The rcon message service
+        /// </summary>
         private readonly IRconMessageService _rconMessageService;
+        /// <summary>
+        /// The steam command service
+        /// </summary>
         private readonly ISteamCmdService _steamCmdService;
+        /// <summary>
+        /// The update timer
+        /// </summary>
         private readonly System.Timers.Timer _updateTimer;
+        /// <summary>
+        /// The check game running timer
+        /// </summary>
         private System.Timers.Timer _checkGameRunningTimer;
+        /// <summary>
+        /// The twitch messages
+        /// </summary>
         private readonly Twitch _twitchMessages;
+        /// <summary>
+        /// The discord messages
+        /// </summary>
         private readonly Models.Messages.Discord _discordMessages;
+        /// <summary>
+        /// The rcon messages
+        /// </summary>
         private readonly Models.Messages.Rcon _rconMessages;
         #endregion
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UpdaterService"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="settings">The settings.</param>
+        /// <param name="twitchMessageService">The twitch message service.</param>
+        /// <param name="discordMessageService">The discord message service.</param>
+        /// <param name="steamCmdService">The steam command service.</param>
+        /// <param name="messageTemplates">The message templates.</param>
+        /// <param name="autorestartService">The autorestart service.</param>
+        /// <param name="rconMessageService">The rcon message service.</param>
         public UpdaterService(
             ILogger<UpdaterService> logger,
             IOptionsSnapshot<Settings> settings,
@@ -79,6 +134,9 @@ namespace AtlasServerUpdater.Services
             }
         }
 
+        /// <summary>
+        /// Setups the server process monitor.
+        /// </summary>
         private void SetupServerProcessMonitor()
         {
             _checkGameRunningTimer = new System.Timers.Timer(30000)
@@ -91,6 +149,11 @@ namespace AtlasServerUpdater.Services
             _checkGameRunningTimer.Start();
         }
 
+        /// <summary>
+        /// Handles the Elapsed event of the _checkGameRunningTimer control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="ElapsedEventArgs"/> instance containing the event data.</param>
         private void _checkGameRunningTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             _logger.LogInformation("Options configured to monitor server running state. Checking if server process is running");
@@ -103,6 +166,9 @@ namespace AtlasServerUpdater.Services
             }
         }
 
+        /// <summary>
+        /// Installs the steam command.
+        /// </summary>
         private void InstallSteamCMD()
         {
             _logger.LogInformation("Checking to see if SteamCmd Exists");
@@ -122,6 +188,11 @@ namespace AtlasServerUpdater.Services
             }
         }
 
+        /// <summary>
+        /// Triggered when the application host is ready to start the service.
+        /// </summary>
+        /// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
+        /// <returns>Task.</returns>
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _updateTimer.Elapsed += async (s, e) => await _timer_Elapsed(e);
@@ -138,12 +209,22 @@ namespace AtlasServerUpdater.Services
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Triggered when the application host is performing a graceful shutdown.
+        /// </summary>
+        /// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
+        /// <returns>Task.</returns>
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Updater Service has Stopped");
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Timers the elapsed.
+        /// </summary>
+        /// <param name="e">The <see cref="System.Timers.ElapsedEventArgs"/> instance containing the event data.</param>
+        /// <returns>Task.</returns>
         private async Task _timer_Elapsed(System.Timers.ElapsedEventArgs e)
         {
             _checkGameRunningTimer?.Dispose();
@@ -214,6 +295,10 @@ namespace AtlasServerUpdater.Services
                 SetupServerProcessMonitor();
         }
 
+        /// <summary>
+        /// Minuteses the pluralisation.
+        /// </summary>
+        /// <returns>System.String.</returns>
         private string MinutesPluralisation()
         {
             return (_settings.Update.AnnounceMinutesBefore == 1 ? "Minute" : "Minutes");

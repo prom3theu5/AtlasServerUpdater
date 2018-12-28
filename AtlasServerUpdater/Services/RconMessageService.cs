@@ -11,13 +11,36 @@ using RCON = AtlasServerUpdater.Models.Settings.RCON;
 
 namespace AtlasServerUpdater.Services
 {
+    /// <summary>
+    /// Class RconMessageService.
+    /// Implements the <see cref="AtlasServerUpdater.Interfaces.IRconMessageService" />
+    /// </summary>
+    /// <seealso cref="AtlasServerUpdater.Interfaces.IRconMessageService" />
     public class RconMessageService : IRconMessageService
     {
+        /// <summary>
+        /// The settings
+        /// </summary>
         private readonly Settings _settings;
+        /// <summary>
+        /// The logger
+        /// </summary>
         private readonly ILogger<RconMessageService> _logger;
+        /// <summary>
+        /// The clients
+        /// </summary>
         private readonly List<CoreRCON.RCON> _clients;
+        /// <summary>
+        /// The rcon settings
+        /// </summary>
         private readonly RCON _rconSettings;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RconMessageService"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="settings">The settings.</param>
+        /// <exception cref="InvalidOperationException">In order to start the Rcon Service, you must supply credentials in the format 'IP,QueryPort,Password'</exception>
         public RconMessageService(ILogger<RconMessageService> logger, IOptionsSnapshot<Settings> settings)
         {
             _logger = logger;
@@ -49,6 +72,11 @@ namespace AtlasServerUpdater.Services
             }
         }
 
+        /// <summary>
+        /// Sends the message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <returns>Task.</returns>
         public async Task SendMessage(string message)
         {
             foreach (CoreRCON.RCON client in _clients)

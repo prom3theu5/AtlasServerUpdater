@@ -13,8 +13,16 @@ using System.Threading.Tasks;
 
 namespace AtlasServerUpdater
 {
+    /// <summary>
+    /// Class Program.
+    /// </summary>
     class Program
     {
+        /// <summary>
+        /// Defines the entry point of the application.
+        /// </summary>
+        /// <param name="args">The arguments.</param>
+        /// <returns>Task.</returns>
         public static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()

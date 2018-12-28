@@ -14,21 +14,53 @@ using System.Threading.Tasks;
 
 namespace AtlasServerUpdater.Services
 {
+    /// <summary>
+    /// Class SteamCmdService.
+    /// Implements the <see cref="AtlasServerUpdater.Interfaces.ISteamCmdService" />
+    /// </summary>
+    /// <seealso cref="AtlasServerUpdater.Interfaces.ISteamCmdService" />
     public class SteamCmdService : ISteamCmdService
     {
+        /// <summary>
+        /// The logger
+        /// </summary>
         private readonly ILogger<SteamCmdService> _logger;
+        /// <summary>
+        /// The settings
+        /// </summary>
         private readonly Settings _settings;
+        /// <summary>
+        /// The atlas server appid
+        /// </summary>
         private const string AtlasServerAppid = "1006030";
+        /// <summary>
+        /// The steam command executable
+        /// </summary>
         private const string SteamCmdExe = "steamcmd.exe";
+        /// <summary>
+        /// The steam command download zip URL
+        /// </summary>
         private const string SteamCmdDownloadZipUrl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip";
+        /// <summary>
+        /// The steam command zip filename
+        /// </summary>
         private const string SteamCmdZipFilename = "steamcmd.zip";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SteamCmdService"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="settings">The settings.</param>
         public SteamCmdService(ILogger<SteamCmdService> logger, IOptionsSnapshot<Settings> settings)
         {
             _logger = logger;
             _settings = settings.Value;
         }
 
+        /// <summary>
+        /// Determines whether [is steam command installed].
+        /// </summary>
+        /// <returns><c>true</c> if [is steam command installed]; otherwise, <c>false</c>.</returns>
         public bool IsSteamCmdInstalled()
         {
             if (Directory.Exists(_settings.Update.SteamCmdPath))
@@ -42,6 +74,10 @@ namespace AtlasServerUpdater.Services
             return false;
         }
 
+        /// <summary>
+        /// Installs the steam command.
+        /// </summary>
+        /// <returns>Task&lt;System.ValueTuple&lt;System.Boolean, System.Nullable&lt;FailureReasonEnum&gt;&gt;&gt;.</returns>
         public async Task<(bool InstallResult, FailureReasonEnum? Reason)> InstallSteamCmd()
         {
             try
@@ -78,6 +114,9 @@ namespace AtlasServerUpdater.Services
             }
         }
 
+        /// <summary>
+        /// Installs the and update atlas server.
+        /// </summary>
         public void InstallAndUpdateAtlasServer()
         {
             ProcessStartInfo processStartInfo = new ProcessStartInfo
@@ -91,6 +130,10 @@ namespace AtlasServerUpdater.Services
             Process.Start(processStartInfo)?.WaitForExit();
         }
 
+        /// <summary>
+        /// Detects the update.
+        /// </summary>
+        /// <returns>Task&lt;System.ValueTuple&lt;System.Boolean, System.String&gt;&gt;.</returns>
         public async Task<(bool Result, string Version)> DetectUpdate()
         {
             try
@@ -171,6 +214,10 @@ namespace AtlasServerUpdater.Services
             }
         }
 
+        /// <summary>
+        /// Starts the atlas server.
+        /// </summary>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         public bool StartAtlasServer()
         {
             try
@@ -197,6 +244,10 @@ namespace AtlasServerUpdater.Services
             }
         }
 
+        /// <summary>
+        /// Kills the atlas.
+        /// </summary>
+        /// <returns>Task&lt;System.Boolean&gt;.</returns>
         public async Task<bool> KillAtlas()
         {
             try

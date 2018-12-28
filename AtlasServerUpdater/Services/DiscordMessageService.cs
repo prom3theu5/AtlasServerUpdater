@@ -10,12 +10,32 @@ using System.Threading.Tasks;
 
 namespace AtlasServerUpdater.Services
 {
+    /// <summary>
+    /// Class DiscordMessageService.
+    /// Implements the <see cref="AtlasServerUpdater.Interfaces.IDiscordMessageService" />
+    /// </summary>
+    /// <seealso cref="AtlasServerUpdater.Interfaces.IDiscordMessageService" />
     public class DiscordMessageService : IDiscordMessageService
     {
+        /// <summary>
+        /// The settings
+        /// </summary>
         private readonly Settings _settings;
+        /// <summary>
+        /// The client
+        /// </summary>
         private readonly DiscordSocketClient _client;
+        /// <summary>
+        /// The logger
+        /// </summary>
         private readonly ILogger<DiscordMessageService> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscordMessageService"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="settings">The settings.</param>
+        /// <exception cref="InvalidOperationException">In order to start the Discord service, you must supply a bot token, and a channelId for notifications to appear in.</exception>
         public DiscordMessageService(ILogger<DiscordMessageService> logger, IOptionsSnapshot<Settings> settings)
         {
             _logger = logger;
@@ -47,18 +67,32 @@ namespace AtlasServerUpdater.Services
 
         }
 
+        /// <summary>
+        /// Readies the asynchronous.
+        /// </summary>
+        /// <returns>Task.</returns>
         private Task ReadyAsync()
         {
             _logger.LogInformation("{this} > Connected to discord as {user}", nameof(DiscordMessageService), _client.CurrentUser);
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Logs the asynchronous.
+        /// </summary>
+        /// <param name="arg">The argument.</param>
+        /// <returns>Task.</returns>
         private Task LogAsync(LogMessage arg)
         {
             _logger.LogInformation("{this} > Discord Log: {message}", nameof(DiscordMessageService), arg.Message);
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Sends the message.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <returns>Task.</returns>
         public async Task SendMessage(string message)
         {
             SocketChannel channel = _client.GetChannel(_settings.Discord.ChannelId);
