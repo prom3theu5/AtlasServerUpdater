@@ -47,7 +47,7 @@ namespace AtlasServerUpdater.Services
             _settings = settings.Value;
             _rconSettings = settings.Value.RCON;
             _clients = new List<CoreRCON.RCON>();
-            if (!_settings.Update.AnnounceDiscord)
+            if (!_settings.Update.AnnounceRCon)
             {
                 _logger.LogInformation("RCON Messaging is Disabled in Application Settings");
                 return;
