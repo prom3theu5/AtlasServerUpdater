@@ -1,0 +1,3 @@
+[submodule "AtlasRconClient"]
+	path = AtlasRconClient
+	url = https://github.com/prom3theu5/AtlasRconClient
