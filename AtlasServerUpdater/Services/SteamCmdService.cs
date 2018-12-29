@@ -134,84 +134,93 @@ namespace AtlasServerUpdater.Services
         /// Detects the update.
         /// </summary>
         /// <returns>Task&lt;System.ValueTuple&lt;System.Boolean, System.String&gt;&gt;.</returns>
-        public async Task<(bool Result, string Version)> DetectUpdate()
+        public Task<(bool Result, string Version)> DetectUpdate()
         {
-            try
+            return Task.Run(() =>
             {
-                if (_settings.Update.InstalledBuild == 0)
+                try
                 {
-                    if (string.IsNullOrWhiteSpace(_settings.Atlas.FolderPath))
+                    if (_settings.Update.InstalledBuild == 0)
                     {
-                        _logger.LogError("You must set your Installation Folder path in the config.json file");
-                        return (false, null);
-                    }
-                    _logger.LogInformation("Current Atlas Dedicated Server Build Version not stored in Settings, Trying to get it now from your Application Manifest file");
-
-                    string installedBuild = File.ReadAllLines(Path.Combine(_settings.Atlas.FolderPath, "steamapps", $"appmanifest_{AtlasServerAppid}.acf"))
-                        ?.FirstOrDefault(c => c.Contains("buildid"))
-                        ?.Split('\t', '\t')
-                        ?.LastOrDefault()
-                        ?.Trim()
-                        ?.Replace("\"", "");
-                    if (installedBuild == null)
-                        _logger.LogError($"Couldn't get installed Atlas Dedicated Server Build Version from your appmanifest_{AtlasServerAppid}.acf file. Please set this manually in config.json");
-                    else
-                    {
-                        _settings.Update.InstalledBuild = Convert.ToInt32(installedBuild);
-                        _logger.LogInformation("Atlas Dedicated Server Build Version has been detected and set as {buildversion}", installedBuild);
-                        return (false, null);
-                    }
-                }
-
-                // Clear SteamCMD App Cache so correct Live build is Pulled!
-                // App needs to be admin, or have write permissions on the steamcmd directory.
-                string cache = Path.Combine(_settings.Update.SteamCmdPath, "appcache");
-                if (Directory.Exists(cache))
-                {
-                    Directory.Delete(cache, true);
-                }
-
-                string[] output = { };
-                await Task.Run(() =>
-                    {
-                        ProcessStartInfo processStartInfo = new ProcessStartInfo
+                        if (string.IsNullOrWhiteSpace(_settings.Atlas.FolderPath))
                         {
-                            FileName = $"{_settings.Update.SteamCmdPath}{SteamCmdExe}",
-                            Arguments = $"+login anonymous +app_info_update 1 +app_info_print {AtlasServerAppid} +app_info_print {AtlasServerAppid} +quit",
-                            RedirectStandardOutput = true,
-                            UseShellExecute = false
-                        };
-                        Process process = Process.Start(processStartInfo);
-                        output = process.StandardOutput.ReadToEnd().Split('\r', '\n');
-                        process.WaitForExit();
-                    });
+                            _logger.LogError("You must set your Installation Folder path in the config.json file");
+                            return (false, null);
+                        }
 
-                string steamVersionString = output.FirstOrDefault(c => c.Contains("buildid"));
-                if (steamVersionString == null)
-                {
-                    _logger.LogError("Steam Version was Not Detected");
-                    return (false, null);
-                }
-                int steamVersion = Convert.ToInt32(steamVersionString.Split(new char[] { '\t', '\t' })
+                        _logger.LogInformation(
+                            "Current Atlas Dedicated Server Build Version not stored in Settings, Trying to get it now from your Application Manifest file");
+
+                        string installedBuild = File.ReadAllLines(Path.Combine(_settings.Atlas.FolderPath, "steamapps",
+                                $"appmanifest_{AtlasServerAppid}.acf"))
+                            ?.FirstOrDefault(c => c.Contains("buildid"))
+                            ?.Split('\t', '\t')
+                            ?.LastOrDefault()
+                            ?.Trim()
+                            ?.Replace("\"", "");
+                        if (installedBuild == null)
+                            _logger.LogError(
+                                $"Couldn't get installed Atlas Dedicated Server Build Version from your appmanifest_{AtlasServerAppid}.acf file. Please set this manually in config.json");
+                        else
+                        {
+                            _settings.Update.InstalledBuild = Convert.ToInt32(installedBuild);
+                            _logger.LogInformation(
+                                "Atlas Dedicated Server Build Version has been detected and set as {buildversion}",
+                                installedBuild);
+                            return (false, null);
+                        }
+                    }
+
+                    // Clear SteamCMD App Cache so correct Live build is Pulled!
+                    // App needs to be admin, or have write permissions on the steamcmd directory.
+                    string cache = Path.Combine(_settings.Update.SteamCmdPath, "appcache");
+                    if (Directory.Exists(cache))
+                    {
+                        Directory.Delete(cache, true);
+                    }
+
+                    ProcessStartInfo processStartInfo = new ProcessStartInfo
+                    {
+                        FileName = $"{_settings.Update.SteamCmdPath}{SteamCmdExe}",
+                        Arguments =
+                            $"+login anonymous +app_info_update 1 +app_info_print {AtlasServerAppid} +app_info_print {AtlasServerAppid} +app_info_print {AtlasServerAppid} +quit",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false
+                    };
+                    Process process = Process.Start(processStartInfo);
+                    string[] output = process.StandardOutput.ReadToEnd().Split('\r', '\n');
+                    process.WaitForExit();
+                    string steamVersionString = output.FirstOrDefault(c => c.Contains("buildid"));
+                    if (steamVersionString == null)
+                    {
+                        _logger.LogError("Steam Version was Not Detected");
+                        return (false, null);
+                    }
+
+                    int steamVersion = Convert.ToInt32(steamVersionString.Split(new char[] { '\t', '\t' })
                         ?.LastOrDefault()
                         ?.Trim()
                         ?.Replace("\"", ""));
-                if (steamVersion <= _settings.Update.InstalledBuild)
+                    if (steamVersion <= _settings.Update.InstalledBuild)
+                    {
+                        _logger.LogInformation(
+                            "Installed Version is the same or greater than the steam version. No Update Needed!");
+                        return (false, null);
+                    }
+
+                    _logger.LogInformation(
+                        "Detected SteamVersion as: {steamversion}. Your version is: {localVersion} An Update is required.",
+                        steamVersion, _settings.Update.InstalledBuild.ToString());
+
+                    _settings.Update.InstalledBuild = Convert.ToInt32(steamVersion);
+                    return (true, _settings.Update.InstalledBuild.ToString());
+                }
+                catch (Exception e)
                 {
-                    _logger.LogInformation("Installed Version is the same or greater than the steam version. No Update Needed!");
+                    _logger.LogError("Exception occured in Detecting Update: {exception}", e.Message);
                     return (false, null);
                 }
-
-                _logger.LogInformation("Detected SteamVersion as: {steamversion}. Your version is: {localVersion} An Update is required.", steamVersion, _settings.Update.InstalledBuild.ToString());
-
-                _settings.Update.InstalledBuild = Convert.ToInt32(steamVersion);
-                return (false, _settings.Update.InstalledBuild.ToString());
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Exception occured in Detecting Update: {exception}", e.Message);
-                return (false, null);
-            }
+            });
         }
 
         /// <summary>

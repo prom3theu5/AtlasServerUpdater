@@ -115,7 +115,12 @@ namespace AtlasServerUpdater.Services
                 InstallSteamCMD();
 
             if (_settings.Update.ShouldInstallAtlasServerIfMissing)
-                _steamCmdService.InstallAndUpdateAtlasServer();
+            {
+                Process process = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.ServerProcessName));
+                if (process is null)
+                    _steamCmdService.InstallAndUpdateAtlasServer();
+            }
+
 
             _updateTimer = new System.Timers.Timer(_settings.Update.UpdateCheckInterval * 1000 * 60)
             {
@@ -156,13 +161,15 @@ namespace AtlasServerUpdater.Services
         /// <param name="e">The <see cref="ElapsedEventArgs"/> instance containing the event data.</param>
         private void _checkGameRunningTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            _logger.LogInformation("Options configured to monitor server running state. Checking if server process is running");
             Process process = Process.GetProcesses().FirstOrDefault(c => c.ProcessName.Contains(_settings.Atlas.ServerProcessName));
 
             if (process is null)
             {
                 _logger.LogCritical("Server Process not found to be running. Will try to start now.");
-                _steamCmdService.StartAtlasServer();
+                if (_steamCmdService.StartAtlasServer())
+                {
+                    _logger.LogInformation("The Atlas Server has been started Successfully!");
+                }
             }
         }
 
